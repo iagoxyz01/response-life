@@ -95,9 +95,8 @@ class NovaSenhaRequest(BaseModel):
     token: str
     nova_senha: str
 
-
 @router.post("/recuperar-senha")
-async def recuperar_senha(
+def recuperar_senha(
     request: RecuperarSenhaRequest,
     db: Session = Depends(get_db)
 ):
@@ -118,7 +117,7 @@ async def recuperar_senha(
     db.commit()
 
     # Enviar email
-    await enviar_email_recuperacao(usuario.email, token)
+    enviar_email_recuperacao(usuario.email, token)
 
     return {"mensagem": "Se o email existir, você receberá as instruções"}
 

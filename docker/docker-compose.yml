@@ -1,0 +1,17 @@
+
+
+services:
+  db:
+    image: postgres:15
+    container_name: response_life_db
+    environment:
+      POSTGRES_USER: responselife
+      POSTGRES_PASSWORD: responselife123
+      POSTGRES_DB: responselife
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

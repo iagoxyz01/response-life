@@ -1,4 +1,4 @@
- import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 
 const router = createRouter({
@@ -34,7 +34,18 @@ const router = createRouter({
       name: 'historico',
       component: () => import('../views/HistoricoView.vue'),
     },
+    {
+      path: '/cadastro-servico',
+      name: 'cadastro-servico',
+      component: () => import('../views/CadastroServicoView.vue'),
+    },
+    {
+  path: '/avaliacao/:id',
+  name: 'avaliacao',
+  component: () => import('../views/AvaliacaoView.vue'),
+},
   ],
 })
 
 export default router
+

@@ -1,3 +1,4 @@
+from sqlalchemy import exists
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -28,6 +29,7 @@ class AgendamentoResponse(BaseModel):
     servico_id: int
     cliente_id: int
     status: StatusAgendamento
+    avaliado: bool = False
 
     class Config:
         from_attributes = True
@@ -82,15 +84,35 @@ def meus_agendamentos(
     db: Session = Depends(get_db),
     usuario_atual: UsuarioModel = Depends(get_usuario_atual),
 ):
+    from infrastructure.models import AvaliacaoModel
+
     if usuario_atual.tipo == TipoPerfil.CLIENTE:
-        return db.query(AgendamentoModel).filter(
+        agendamentos = db.query(AgendamentoModel).filter(
             AgendamentoModel.cliente_id == usuario_atual.id
         ).all()
     else:
-        return db.query(AgendamentoModel).join(ServicoModel).filter(
+        agendamentos = db.query(AgendamentoModel).join(ServicoModel).filter(
             ServicoModel.cuidador_id == usuario_atual.id
         ).all()
 
+    resultado = []
+    for ag in agendamentos:
+        avaliado = db.query(AvaliacaoModel).filter(
+            AvaliacaoModel.agendamento_id == ag.id
+        ).first() is not None
+        
+        item = AgendamentoResponse(
+            id=ag.id,
+            data_inicio=ag.data_inicio,
+            data_fim=ag.data_fim,
+            servico_id=ag.servico_id,
+            cliente_id=ag.cliente_id,
+            status=ag.status,
+            avaliado=avaliado,
+        )
+        resultado.append(item)
+
+    return resultado
 
 @router.patch("/{agendamento_id}/concluir", response_model=AgendamentoResponse)
 def concluir_agendamento(

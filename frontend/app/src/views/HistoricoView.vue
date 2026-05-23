@@ -21,12 +21,16 @@
         </div>
 
         <button
-          v-if="ag.status === 'concluido'"
+          v-if="ag.status === 'concluido' && !ag.avaliado"
           class="btn-avaliar"
           @click="avaliar(ag.id)"
         >
           Avaliar
         </button>
+
+        <span v-if="ag.status === 'concluido' && ag.avaliado" class="avaliado">
+          ✅ Avaliado
+        </span>
       </div>
     </div>
   </div>
@@ -160,5 +164,13 @@ function voltar() {
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.9rem;
+}
+
+.avaliado {
+  display: block;
+  text-align: center;
+  color: #065f46;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
 }
 </style>

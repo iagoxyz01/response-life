@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from interface import usuarios, servicos, agendamentos
+from interface import usuarios, servicos, agendamentos, avaliacoes
 
 app = FastAPI(
     title="Response Life API",
@@ -22,6 +22,7 @@ app.add_middleware(
 app.include_router(usuarios.router)
 app.include_router(servicos.router)
 app.include_router(agendamentos.router)
+app.include_router(avaliacoes.router)
 
 
 @app.get("/")

@@ -1,45 +1,26 @@
-<template>
+ <template>
   <div class="container">
     <div class="card">
       <h1>Response Life</h1>
-      <p class="subtitle">Conectando cuidadores e clientes</p>
+      <p class="subtitle">Recuperar senha</p>
 
       <div v-if="erro" class="erro">{{ erro }}</div>
+      <div v-if="sucesso" class="sucesso">
+        ✅ Email enviado! Verifique sua caixa de entrada.
+      </div>
 
-      <form @submit.prevent="entrar">
-        <div class="campo">
-          <label>Email</label>
-          <input
-            v-model="email"
-            type="email"
-            placeholder="seu@email.com"
-            required
-          />
-        </div>
+      <div class="campo">
+        <label>Email</label>
+        <input v-model="email" type="email" placeholder="seu@email.com" />
+      </div>
 
-        <div class="campo">
-          <label>Senha</label>
-          <input
-            v-model="senha"
-            type="password"
-            placeholder="sua senha"
-            required
-          />
-        </div>
-
-        <button type="submit" :disabled="carregando">
-          {{ carregando ? 'Entrando...' : 'Entrar' }}
-        </button>
-      </form>
+      <button @click="recuperar" :disabled="carregando">
+        {{ carregando ? 'Enviando...' : 'Enviar instruções' }}
+      </button>
 
       <p class="link">
-        Esqueceu a senha?
-        <a href="/recuperar-senha">Recuperar senha</a>
-      </p>
-
-      <p class="link">
-        Não tem conta?
-        <a href="/cadastro">Cadastre-se</a>
+        Lembrou a senha?
+        <a href="/">Entrar</a>
       </p>
     </div>
   </div>
@@ -47,29 +28,26 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-
-const router = useRouter()
-const authStore = useAuthStore()
+import api from '../api'
 
 const email = ref('')
-const senha = ref('')
 const erro = ref('')
+const sucesso = ref(false)
 const carregando = ref(false)
 
-async function entrar() {
+async function recuperar() {
   erro.value = ''
+  if (!email.value) {
+    erro.value = 'Digite seu email'
+    return
+  }
+
   carregando.value = true
   try {
-    await authStore.login(email.value, senha.value)
-    if (authStore.isCliente) {
-      router.push('/home-cliente')
-    } else {
-      router.push('/home-cuidador')
-    }
+    await api.post('/usuarios/recuperar-senha', { email: email.value })
+    sucesso.value = true
   } catch (e: any) {
-    erro.value = 'Email ou senha inválidos'
+    erro.value = 'Erro ao enviar email'
   } finally {
     carregando.value = false
   }
@@ -103,7 +81,7 @@ h1 {
 .subtitle {
   text-align: center;
   color: #718096;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .campo {
@@ -135,16 +113,23 @@ button {
   border-radius: 8px;
   font-size: 1rem;
   cursor: pointer;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
 }
 
-button:disabled {
-  opacity: 0.6;
-}
+button:disabled { opacity: 0.6; }
 
 .erro {
   background: #fff5f5;
   color: #c53030;
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.sucesso {
+  background: #d1fae5;
+  color: #065f46;
   padding: 0.75rem;
   border-radius: 8px;
   margin-bottom: 1rem;
@@ -157,8 +142,5 @@ button:disabled {
   color: #718096;
 }
 
-.link a {
-  color: #2c7a7b;
-  font-weight: 500;
-}
+.link a { color: #2c7a7b; font-weight: 500; }
 </style>

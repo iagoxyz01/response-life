@@ -44,6 +44,16 @@ const router = createRouter({
   name: 'avaliacao',
   component: () => import('../views/AvaliacaoView.vue'),
 },
+{
+  path: '/recuperar-senha',
+  name: 'recuperar-senha',
+  component: () => import('../views/RecuperarSenhaView.vue'),
+},
+{
+  path: '/nova-senha',
+  name: 'nova-senha',
+  component: () => import('../views/NovaSenhaView.vue'),
+},
   ],
 })
 

@@ -81,3 +81,72 @@ def login(
     token = criar_token({"sub": usuario.email, "tipo": usuario.tipo.value})
 
     return {"access_token": token, "token_type": "bearer"}
+
+from mail import enviar_email_recuperacao
+from datetime import datetime, timedelta
+import secrets
+
+
+class RecuperarSenhaRequest(BaseModel):
+    email: str
+
+
+class NovaSenhaRequest(BaseModel):
+    token: str
+    nova_senha: str
+
+
+@router.post("/recuperar-senha")
+async def recuperar_senha(
+    request: RecuperarSenhaRequest,
+    db: Session = Depends(get_db)
+):
+    usuario = db.query(UsuarioModel).filter(
+        UsuarioModel.email == request.email
+    ).first()
+
+    if not usuario:
+        # Por segurança não revelamos se o email existe
+        return {"mensagem": "Se o email existir, você receberá as instruções"}
+
+    # Gerar token único
+    token = secrets.token_urlsafe(32)
+    expiry = datetime.utcnow() + timedelta(minutes=30)
+
+    usuario.reset_token = token
+    usuario.reset_token_expiry = expiry
+    db.commit()
+
+    # Enviar email
+    await enviar_email_recuperacao(usuario.email, token)
+
+    return {"mensagem": "Se o email existir, você receberá as instruções"}
+
+
+@router.post("/nova-senha")
+def nova_senha(
+    request: NovaSenhaRequest,
+    db: Session = Depends(get_db)
+):
+    usuario = db.query(UsuarioModel).filter(
+        UsuarioModel.reset_token == request.token
+    ).first()
+
+    if not usuario:
+        raise HTTPException(status_code=400, detail="Token inválido")
+
+    if usuario.reset_token_expiry < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="Token expirado")
+
+    if len(request.nova_senha) < 6:
+        raise HTTPException(
+            status_code=400,
+            detail="Senha deve ter no mínimo 6 caracteres"
+        )
+
+    usuario.senha = pwd_context.hash(request.nova_senha)
+    usuario.reset_token = None
+    usuario.reset_token_expiry = None
+    db.commit()
+
+    return {"mensagem": "Senha alterada com sucesso!"}

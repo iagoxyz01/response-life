@@ -23,6 +23,8 @@ class UsuarioModel(Base):
     email = Column(String, unique=True, nullable=False)
     senha = Column(String, nullable=False)
     tipo = Column(Enum(TipoPerfil), nullable=False)
+    reset_token = Column(String, nullable=True)
+    reset_token_expiry = Column(DateTime, nullable=True)
 
 
 class ServicoModel(Base):

@@ -51,3 +51,33 @@ def criar_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db)):
     db.refresh(novo_usuario)
 
     return novo_usuario
+from auth import verificar_senha, criar_token
+from fastapi.security import OAuth2PasswordRequestForm
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+
+
+@router.post("/login", response_model=TokenResponse)
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
+    # Buscar usuário pelo email
+    usuario = db.query(UsuarioModel).filter(
+        UsuarioModel.email == form_data.username
+    ).first()
+
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Email ou senha inválidos")
+
+    # Verificar senha
+    if not verificar_senha(form_data.password, usuario.senha):
+        raise HTTPException(status_code=401, detail="Email ou senha inválidos")
+
+    # Gerar token
+    token = criar_token({"sub": usuario.email, "tipo": usuario.tipo.value})
+
+    return {"access_token": token, "token_type": "bearer"}

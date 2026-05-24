@@ -164,3 +164,89 @@ def cancelar_agendamento(
     db.refresh(agendamento)
 
     return agendamento
+
+@router.patch("/{agendamento_id}/aceitar", response_model=AgendamentoResponse)
+def aceitar_agendamento(
+    agendamento_id: int,
+    db: Session = Depends(get_db),
+    usuario_atual: UsuarioModel = Depends(get_usuario_atual),
+):
+    if usuario_atual.tipo != TipoPerfil.CUIDADOR:
+        raise HTTPException(
+            status_code=403,
+            detail="Apenas cuidadores podem aceitar agendamentos"
+        )
+
+    agendamento = db.query(AgendamentoModel).filter(
+        AgendamentoModel.id == agendamento_id
+    ).first()
+
+    if not agendamento:
+        raise HTTPException(status_code=404, detail="Agendamento não encontrado")
+
+    if agendamento.status != StatusAgendamento.PENDENTE:
+        raise HTTPException(
+            status_code=400,
+            detail="Apenas agendamentos pendentes podem ser aceitos"
+        )
+
+    agendamento.status = StatusAgendamento.ACEITO
+    db.commit()
+    db.refresh(agendamento)
+    return agendamento
+
+
+@router.patch("/{agendamento_id}/recusar", response_model=AgendamentoResponse)
+def recusar_agendamento(
+    agendamento_id: int,
+    db: Session = Depends(get_db),
+    usuario_atual: UsuarioModel = Depends(get_usuario_atual),
+):
+    if usuario_atual.tipo != TipoPerfil.CUIDADOR:
+        raise HTTPException(
+            status_code=403,
+            detail="Apenas cuidadores podem recusar agendamentos"
+        )
+
+    agendamento = db.query(AgendamentoModel).filter(
+        AgendamentoModel.id == agendamento_id
+    ).first()
+
+    if not agendamento:
+        raise HTTPException(status_code=404, detail="Agendamento não encontrado")
+
+    agendamento.status = StatusAgendamento.RECUSADO
+    db.commit()
+    db.refresh(agendamento)
+    return agendamento
+
+
+@router.patch("/{agendamento_id}/iniciar", response_model=AgendamentoResponse)
+def iniciar_agendamento(
+    agendamento_id: int,
+    db: Session = Depends(get_db),
+    usuario_atual: UsuarioModel = Depends(get_usuario_atual),
+):
+    if usuario_atual.tipo != TipoPerfil.CUIDADOR:
+        raise HTTPException(
+            status_code=403,
+            detail="Apenas cuidadores podem iniciar agendamentos"
+        )
+
+    agendamento = db.query(AgendamentoModel).filter(
+        AgendamentoModel.id == agendamento_id
+    ).first()
+
+    if not agendamento:
+        raise HTTPException(status_code=404, detail="Agendamento não encontrado")
+
+    if agendamento.status != StatusAgendamento.ACEITO:
+        raise HTTPException(
+            status_code=400,
+            detail="Apenas agendamentos aceitos podem ser iniciados"
+        )
+
+    agendamento.status = StatusAgendamento.ATIVO
+    db.commit()
+    db.refresh(agendamento)
+    return agendamento

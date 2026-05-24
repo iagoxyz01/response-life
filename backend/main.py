@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from interface import usuarios, servicos, agendamentos, avaliacoes
+from interface import usuarios, servicos, agendamentos, avaliacoes, chat
 
 app = FastAPI(
     title="Response Life API",
@@ -20,6 +20,7 @@ app.include_router(usuarios.router)
 app.include_router(servicos.router)
 app.include_router(agendamentos.router)
 app.include_router(avaliacoes.router)
+app.include_router(chat.router)
 
 
 @app.on_event("startup")

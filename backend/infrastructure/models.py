@@ -6,8 +6,11 @@ import enum
 
 class StatusAgendamento(enum.Enum):
     PENDENTE = "pendente"
+    ACEITO = "aceito"
+    ATIVO = "ativo"
     CONCLUIDO = "concluido"
     CANCELADO = "cancelado"
+    RECUSADO = "recusado"
 
 
 class TipoPerfil(enum.Enum):
@@ -54,3 +57,15 @@ class AvaliacaoModel(Base):
     agendamento_id = Column(Integer, ForeignKey("agendamentos.id"))
     nota = Column(Integer, nullable=False)
     comentario = Column(String, default="")
+
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum, Text
+from datetime import datetime
+
+class MensagemModel(Base):
+    __tablename__ = "mensagens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    remetente_id = Column(Integer, ForeignKey("usuarios.id"))
+    destinatario_id = Column(Integer, ForeignKey("usuarios.id"))
+    texto = Column(Text, nullable=False)
+    criado_em = Column(DateTime, default=datetime.utcnow)
